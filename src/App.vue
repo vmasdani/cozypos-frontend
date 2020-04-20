@@ -11,6 +11,7 @@
             <b-nav-item to="/statistics">Statistics</b-nav-item>
             <b-nav-item to="/transactions">Transaction</b-nav-item>
             <b-nav-item to="/inventory">Inventory</b-nav-item>
+            <b-nav-item to="/stock-in">Stock In</b-nav-item>
             <b-nav-item to="/projects">Projects</b-nav-item>  
           </b-navbar-nav>
         </b-collapse>
