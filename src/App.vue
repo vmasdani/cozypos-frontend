@@ -11,7 +11,6 @@
             <b-nav-item to="/statistics">Statistics</b-nav-item>
             <b-nav-item to="/transactions">Transaction</b-nav-item>
             <b-nav-item to="/inventory">Inventory</b-nav-item>
-            <b-nav-item to="/stock-in">Stock In</b-nav-item>
             <b-nav-item to="/projects">Projects</b-nav-item>  
           </b-navbar-nav>
         </b-collapse>
@@ -33,6 +32,7 @@ import Project from './components/Project'
 import ProjectDetail from './components/ProjectDetail'
 import Inventory from './components/Inventory'
 import InventoryDetail from './components/InventoryDetail'
+import StockIn from './components/StockIn'
 import VueRouter from 'vue-router'
 import Login from './components/Login'
 
@@ -43,6 +43,7 @@ const routes = [
   { path: '/inventory/:id', component: InventoryDetail },
   { path: '/projects', component: Project },
   { path: '/projects/:id', component: ProjectDetail },
+  { path: '/stock-in/:id', component: StockIn },
 ]
 
 const router = new VueRouter({

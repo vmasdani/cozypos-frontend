@@ -1,22 +1,32 @@
 <template>
   <div>
     <h3 class="text-info">Projects</h3>
-    <b-spinner variant="success"></b-spinner>
     <div class="my-2">
       <b-button to="/projects/new"><b-icon-plus-circle-fill/> Add</b-button>
     </div>
     <div>
       <b-list-group>
         <b-list-group-item 
-          class="bg-light" 
+          class="border-info" 
           v-for="project in projects" 
           :key="project.id"
           v-bind:to="`/projects/${project.id}`"
         >
-          <div class="d-flex flex-column justify-content-between">
+          <div class="d-flex flex-column justify-content-between" v-bind="[formatCurrency]">
             <h5>{{project.name}}</h5>
             <div>
-              Date: {{new Date(project.date).toISOString().slice(0, 10)}}
+              Funding: {{formatCurrency(0)}}
+            </div>
+            <div>
+              Revenue: {{formatCurrency(0)}}
+            </div>
+            <div>
+              Profit: {{formatCurrency(0)}}
+            </div>
+            <div class=" d-flex bg-white">
+              <div class="bg-info p-2 text-white">
+                <strong>Date: {{new Date(project.date).toISOString().slice(0, 10)}}</strong>
+              </div>
             </div>
           </div>
           
@@ -26,6 +36,8 @@
   </div>
 </template>
 <script>
+import { formatCurrency } from '../helpers'
+
 export default {
   name: 'Project',
   data() {
@@ -51,7 +63,8 @@ export default {
       catch(e) {
         console.log(e)
       }
-    }
-  }
+    },
+    formatCurrency
+  },
 }
 </script>
