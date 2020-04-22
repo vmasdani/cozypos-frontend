@@ -11,7 +11,7 @@
       <div>Stock in amount:</div>
       <b-form-input type="number" placeholder="Amount..." v-model="stockInAmount"></b-form-input>
       <div class="d-flex my-3">
-        <b-button>Insert</b-button>
+        <b-button v-on:click="stockIn()">Insert</b-button>
       </div>
     </div>
   </div>
@@ -40,6 +40,29 @@ export default {
 
         const item = await response.json()
         this.item = item
+      }
+      catch(e) {
+        console.log(e)
+      }
+    },
+    async stockIn() {
+      try {
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items/stock-in`, {
+          method: 'POST',
+          headers: {
+            'Content-Type' : 'application/json'
+          },
+          body: JSON.stringify({
+            item_id: this.item ? this.item.id : 0,
+            qty: parseInt(this.stockInAmount)
+          })
+        })
+
+        if(response.status !== 201) {
+          throw 'Failed creating stock-in.'
+        }
+
+        this.$router.push('/inventory')
       }
       catch(e) {
         console.log(e)

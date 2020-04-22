@@ -24,7 +24,7 @@
         <b-form-input placeholder="Item Fund..." v-model="item.manufacturing_price"></b-form-input>
       </div>
       <div class="my-2">
-        <b-button variant="primary">Save</b-button>
+        <b-button variant="primary" v-on:click="saveData()">Save</b-button>
       </div>
     </div>
   </div>
@@ -71,7 +71,32 @@ export default {
       catch(e) {
         console.log(e)
       }
+    },
+    async saveData() {
+      try {
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items`, {
+          method: 'POST',
+          headers: {
+            'Content-Type' : 'application/json'
+          },
+          body: JSON.stringify({
+            ...this.item,
+            id: this.newItem ? 0 : this.item.id,
+            price: parseInt(this.item.price),
+            manufacturing_price: parseInt(this.item.manufacturing_price)
+          })
+        })
+
+        if(response.status !== 201) {
+          throw 'Failed creating/updating item.'
+        }
+
+        this.$router.push('/inventory')
+      }
+      catch(e) {
+        console.log(e)
+      }
     }
-  }
+  },
 }
 </script>

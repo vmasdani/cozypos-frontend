@@ -27,7 +27,7 @@
         </h5>
         <div>
           Item
-          <b-form-input placeholder="Item"></b-form-input>
+          <v-select placeholder="Item..." @search="fetchOptions" :options="options" label="name" v-model="selected"></v-select>
         </div>
         <div>
           Qty
@@ -89,7 +89,9 @@ export default {
         cashier: '',
         custom_price: ''
       },
-      grandTotal: 0
+      grandTotal: 0,
+      options: ['Item A', 'Item B'],
+      selected: null
     }
   },
   created() {
@@ -152,7 +154,14 @@ export default {
     setTransactionType(type) {
       this.transaction.type = type
     },
-    formatCurrency
+    formatCurrency,
+    fetchOptions(search, loading) {
+      console.log(search, loading)
+
+      this.options = [
+        { name: 'item A' }
+      ]
+    }
   },
   watch: {
     transaction: function(val) {
