@@ -87,7 +87,8 @@ export default {
       transaction: {
         type: 'sell',
         cashier: '',
-        custom_price: ''
+        custom_price: '',
+        items_transactions: []
       },
       grandTotal: 0,
       options: ['Item A', 'Item B'],
@@ -116,6 +117,7 @@ export default {
     }
 
     this.fetchProject(projectId)
+    this.fetchOptions('', null)
 
   },
   methods: {
@@ -155,12 +157,26 @@ export default {
       this.transaction.type = type
     },
     formatCurrency,
-    fetchOptions(search, loading) {
+    async fetchOptions(search, loading) {
       console.log(search, loading)
+      console.log(`${process.env.VUE_APP_BASE_URL}/items-search?name=${search}`)
 
-      this.options = [
-        { name: 'item A' }
-      ]
+      try {
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-search?name=${search}`)
+
+        if(response.status !== 200) {
+          throw 'Error fetching items.'
+        }
+
+        const itemsJson = await response.json()
+        this.options = itemsJson
+      }
+      catch(e) {
+        console.log(e)
+      }
+      // this.options = [
+      //   { name: 'item A' }
+      // ]
     }
   },
   watch: {
