@@ -26,17 +26,44 @@
           Items:
         </h5>
         <div>
-          Item
+          Item {{selected ? formatCurrency(selected.price) : ''}}
           <v-select placeholder="Item..." @search="fetchOptions" :options="options" label="name" v-model="selected"></v-select>
         </div>
         <div>
           Qty
-          <b-form-input placeholder="Qty" type="number"></b-form-input>
+          <b-form-input placeholder="Qty" type="number" v-model="inputQty"></b-form-input>
         </div>
-        <b-button class="my-2"><b-icon-plus /> Add to List</b-button>
+        
+        <div class="d-flex flex-column">
+          <b-button class="my-2" v-on:click="addTransactionToList()">
+            <b-icon-plus /> Add to List
+          </b-button>
+          <div class="ml-2">
+            <h4>{{formatCurrency(showItemTotalPrice())}}</h4>
+          </div>
+        </div>
+       
         <b-list-group>
+          <b-list-group-item 
+            class="bg-light d-flex flex-row bordered border-secondary align-items-center"
+            v-for="itemTransaction in transaction.items_transactions"
+            :key="itemTransaction.id"
+          >
+            <div>
+              <b-button v-on:click="deleteItemTransaction(itemTransaction.id, itemTransaction.uuid)" variant="danger"><b-icon-trash2-fill /></b-button>
+            </div>
+            <div class="ml-2">
+              <div>
+                {{itemTransaction.qty}}x {{itemTransaction.item.name}}
+              </div>
+              <div>
+                {{formatCurrency(itemTransaction.item.price * itemTransaction.qty)}}
+              </div>
+            </div>
+          </b-list-group-item>
 
-          <b-list-group-item class="bg-light d-flex flex-row bordered border-secondary align-items-center">
+
+          <!-- <b-list-group-item class="bg-light d-flex flex-row bordered border-secondary align-items-center">
             <div>
               <b-button variant="danger"><b-icon-trash2-fill /></b-button>
             </div>
@@ -63,15 +90,19 @@
                 {{formatCurrency(0)}}
               </div>
             </div>
-          </b-list-group-item>
+          </b-list-group-item> -->
 
         </b-list-group>
         <div class="my-2">
           Grand total:
-          <h3>{{formatCurrency(0)}}</h3>
+          <h3>{{formatCurrency(fetchGrandTotal())}}</h3>
+        </div>
+        <div class="my-2">
+          Custom price:
+          <h3>{{formatCurrency(transaction.custom_price)}}</h3>
         </div>
       </div>
-      <b-button variant="primary"><b-icon-upload/> Save</b-button>
+      <b-button variant="primary" v-on:click="saveTransaction()"><b-icon-upload/> Save</b-button>
     </div>
   </div>
 </template>
@@ -85,14 +116,17 @@ export default {
       project: null,
       newProject: false,
       transaction: {
+        uuid: '',
         type: 'sell',
         cashier: '',
         custom_price: '',
         items_transactions: []
       },
+      idsToDelete: [],
       grandTotal: 0,
       options: ['Item A', 'Item B'],
-      selected: null
+      selected: null,
+      inputQty: ''
     }
   },
   created() {
@@ -177,6 +211,82 @@ export default {
       // this.options = [
       //   { name: 'item A' }
       // ]
+    },
+    showItemTotalPrice() {
+      const itemPrice = this.selected ? this.selected.price : 0
+      const parsedInputQty = parseInt(this.inputQty)
+
+      const inputQty = isNaN(parsedInputQty) ? 0 : parsedInputQty
+
+      return itemPrice * inputQty
+    },
+    fetchGrandTotal() {
+      let total = 0
+      this.transaction.items_transactions.forEach(itemTransaction => total += itemTransaction.qty * itemTransaction.item.price)
+    
+      return total
+    },
+    addTransactionToList() {
+      if(this.selected === null) {
+        alert('Please select an item first!')
+        return
+      }
+
+      const parsedInputQty = parseInt(this.inputQty)
+      const inputQty = isNaN(parsedInputQty) ? 1 : parsedInputQty
+
+      const newItemTransaction = {
+        qty: inputQty,
+        item: this.selected
+      }
+
+      const newItemTransactions = [...this.transaction.items_transactions, newItemTransaction ]
+      this.transaction.items_transactions = newItemTransactions
+    },
+    deleteItemTransaction(id, uuid) {
+      console.log('uuid:', uuid)
+
+      // Append itemTransaction
+      const newItemTransactions = [...this.transaction.items_transactions]
+      const itemTransactionIndex = newItemTransactions.findIndex(itemTransaction => itemTransaction.uuid === uuid)
+
+      if(itemTransactionIndex >= 0)
+        newItemTransactions.splice(itemTransactionIndex, 1)
+
+      this.transaction.items_transactions = newItemTransactions
+    
+      // Append idsToDelete
+      const newIdsToDelete = [...this.idsToDelete, id]
+      this.idsToDelete = newIdsToDelete
+
+      console.log('ids to delete', newIdsToDelete)
+    },
+    async saveTransaction() {
+      // Save transactions
+      const response = await fetch(`${process.env.VUE_APP_BASE_URL}/transactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type' : 'application/json'
+        },
+        body: JSON.stringify({
+          ...this.transaction,
+          items_transactions: this.transaction.items_transactions.map(itemTransaction => ({
+            ...itemTransaction,
+            item_id: itemTransaction.item.id
+          }))
+        })
+      })
+
+      console.log('Save status:', response.status)
+
+      // Delete ids
+      Promise.all(
+        this.idsToDelete.map(async id => {
+          const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-transactions/${id}`, { method: 'DELETE' })
+          return response.json()
+        })
+      )
+      // this.$router.push('/transactions')
     }
   },
   watch: {
