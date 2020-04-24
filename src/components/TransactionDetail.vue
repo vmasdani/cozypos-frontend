@@ -108,6 +108,7 @@
 </template>
 <script>
 import { formatCurrency } from '../helpers'
+import { v4 as uuidv4 } from 'uuid'
 
 export default {
   name: 'TransactionDetail',
@@ -236,6 +237,7 @@ export default {
       const inputQty = isNaN(parsedInputQty) ? 1 : parsedInputQty
 
       const newItemTransaction = {
+        uuid: uuidv4(),
         qty: inputQty,
         item: this.selected
       }
@@ -262,31 +264,41 @@ export default {
       console.log('ids to delete', newIdsToDelete)
     },
     async saveTransaction() {
-      // Save transactions
-      const response = await fetch(`${process.env.VUE_APP_BASE_URL}/transactions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type' : 'application/json'
-        },
-        body: JSON.stringify({
-          ...this.transaction,
-          items_transactions: this.transaction.items_transactions.map(itemTransaction => ({
-            ...itemTransaction,
-            item_id: itemTransaction.item.id
-          }))
+      try {
+        // Save transactions
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/transactions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type' : 'application/json'
+          },
+          body: JSON.stringify({
+            ...this.transaction,
+            uuid: this.transaction.uuid === '' ? uuidv4() : this.transaction.uuid,
+            project_id: this.project.id,
+            custom_price: isNaN(parseInt(this.transaction.custom_price)) ? 0 : parseInt(this.transaction.custom_price), 
+            items_transactions: this.transaction.items_transactions.map(itemTransaction => ({
+              ...itemTransaction,
+              item_id: itemTransaction.item.id
+            }))
+          })
         })
-      })
 
-      console.log('Save status:', response.status)
+        if(response.status !== 201) {
+          throw 'Error saving transaction'
+        }
 
-      // Delete ids
-      Promise.all(
-        this.idsToDelete.map(async id => {
-          const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-transactions/${id}`, { method: 'DELETE' })
-          return response.json()
-        })
-      )
-      // this.$router.push('/transactions')
+        // Delete ids
+        Promise.all(
+          this.idsToDelete.map(async id => {
+            const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-transactions/${id}`, { method: 'DELETE' })
+            return response.json()
+          })
+        )
+        // this.$router.push('/transactions')
+      }
+      catch(e) {
+        console.log(e)
+      }
     }
   },
   watch: {
