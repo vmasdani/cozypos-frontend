@@ -1,5 +1,8 @@
 <template>
-    <div>
+    <div v-if="isLoading">
+      <b-spinner variant="primary"></b-spinner>
+    </div>
+    <div v-else>
       <h2 class="text-primary">Transactions</h2>
       <div class="d-flex">
         <h4>Project:</h4>
@@ -55,7 +58,8 @@ export default {
     return {
       selectedProject: null,
       projects: [],
-      projectDetails: null
+      projectDetails: null,
+      isLoading: false
     }
   },
   created() {
@@ -71,6 +75,7 @@ export default {
     async fetchInitialProject() {
       try {
         // Fetch currently available projects
+        this.isLoading = true
         const projectsResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects`, {
           headers: {
             'Authorization' : localStorage.getItem('apiKey')
@@ -78,6 +83,7 @@ export default {
         })
 
         if(projectsResponse.status !== 200) {
+          this.isLoading = false
           throw "Fetching projects failed"
         }
         const projects = await projectsResponse.json()
@@ -97,6 +103,8 @@ export default {
         if(selectedProject !== null) {
           this.fetchProject(selectedProject.id)
         }
+
+        this.isLoading = false
 
         // Check route
         const projectId = this.$route.query.projectid
@@ -120,6 +128,7 @@ export default {
     },
     async fetchProject(id) {
       try {
+        this.isLoading = true
         const projectDetailResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects/${id}`, {
           headers: {
             'Authorization' : localStorage.getItem('apiKey')
@@ -127,6 +136,7 @@ export default {
         })
         
         if(projectDetailResponse.status !== 200) {
+          this.isLoading = false
           throw "Fetching project details failed"
         }
 
@@ -136,6 +146,7 @@ export default {
         if(projectDetails != null) {
           this.projectDetails = projectDetails
         } 
+        this.isLoading = false
       }
       catch(e) {
         console.log(e)

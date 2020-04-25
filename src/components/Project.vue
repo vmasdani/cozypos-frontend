@@ -17,9 +17,9 @@
             <!-- <div>
               Funding: {{formatCurrency(0)}}
             </div> -->
-            <div>
+            <!-- <div>
               Revenue: {{formatCurrency(0)}}
-            </div>
+            </div> -->
             <!-- <div>
               Profit: {{formatCurrency(0)}}
             </div> -->

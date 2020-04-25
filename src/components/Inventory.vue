@@ -1,5 +1,8 @@
 <template>
-  <div>
+  <div v-if="isLoading">
+    <b-spinner variant="primary"/>
+  </div>
+  <div v-else>
     <h3 class="text-info">Inventory</h3>
     <div>
       <b-button to="/inventory/new"><b-icon-plus-circle-fill /> Add</b-button>
@@ -54,7 +57,8 @@ export default {
     return {
       search: '',
       inventory: [],
-      filteredInventory: []
+      filteredInventory: [],
+      isLoading: false
     }
   },
   created() {
@@ -64,6 +68,7 @@ export default {
   methods: {
     async fetchInventory() {
       try {
+        this.isLoading = true
         const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items`, { 
           headers: {
             'Authorization' : localStorage.getItem('apiKey')
@@ -71,12 +76,14 @@ export default {
         })
 
         if(response.status !== 200) {
+          this.isLoading = false
           throw 'Fetching inventory error.'
         }
 
         const responseJson = await response.json()
         this.inventory = responseJson
         this.filteredInventory = responseJson
+        this.isLoading = false
       }
       catch(e) {
         console.log(e)
