@@ -1,6 +1,6 @@
 <template>
   <div v-bind="project">
-    <b-button class="my-2" to="/transactions"><b-icon-arrow-left/> Back</b-button>
+    <b-button class="my-2" v-on:click="back"><b-icon-arrow-left/> Back</b-button>
     <h5>
       {{newProject ? 'New Transaction' : 'Edit Transaction'}}: {{project.name}}
     </h5>
@@ -158,7 +158,11 @@ export default {
   methods: {
     async fetchProject(id) {
       try {
-        const projectResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects/${id}`)
+        const projectResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects/${id}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         let project = null
         if(projectResponse.status !== 200) {
@@ -174,7 +178,11 @@ export default {
     },
     async fetchTransaction(id) {
       try {
-        const transactionResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/transactions/${id}`)
+        const transactionResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/transactions/${id}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         let transaction = null
         if(transactionResponse.status !== 200) {
@@ -244,6 +252,9 @@ export default {
 
       const newItemTransactions = [...this.transaction.items_transactions, newItemTransaction ]
       this.transaction.items_transactions = newItemTransactions
+
+      this.selected = null
+      this.inputQty = ''
     },
     deleteItemTransaction(id, uuid) {
       console.log('uuid:', uuid)
@@ -264,16 +275,21 @@ export default {
       console.log('ids to delete', newIdsToDelete)
     },
     async saveTransaction() {
+      const cashierSplit = localStorage.getItem('apiKey').split(':')
+      const cashier = cashierSplit.length > 0 ? atob(cashierSplit[0]) : ''
+
       try {
         // Save transactions
         const response = await fetch(`${process.env.VUE_APP_BASE_URL}/transactions`, {
           method: 'POST',
           headers: {
-            'Content-Type' : 'application/json'
+            'Content-Type' : 'application/json',
+            'Authorization' : localStorage.getItem('apiKey')
           },
           body: JSON.stringify({
             ...this.transaction,
             uuid: this.transaction.uuid === '' ? uuidv4() : this.transaction.uuid,
+            cashier: this.transaction.cashier === '' ? cashier : this.transaction.cashier,
             project_id: this.project.id,
             custom_price: isNaN(parseInt(this.transaction.custom_price)) ? 0 : parseInt(this.transaction.custom_price), 
             items_transactions: this.transaction.items_transactions.map(itemTransaction => ({
@@ -290,7 +306,12 @@ export default {
         // Delete ids
         Promise.all(
           this.idsToDelete.map(async id => {
-            const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-transactions/${id}`, { method: 'DELETE' })
+            const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-transactions/${id}`, { 
+              method: 'DELETE',
+              headers: {
+                'Authorization' : localStorage.getItem('apiKey')
+              } 
+            })
             return response.json()
           })
         )
@@ -299,6 +320,9 @@ export default {
       catch(e) {
         console.log(e)
       }
+    },
+    back() {
+      this.$router.go(-1)
     }
   },
   watch: {

@@ -14,9 +14,9 @@
         </b-dropdown>
       </div>
       <div v-bind="projectDetails">
-        <h5>Revenue: {{projectDetails ? formatCurrency(projectDetails.project_revenue) : ''}}</h5>
-        <h5>Funding cost: {{projectDetails ? formatCurrency(projectDetails.project_manufacturing_price) : ''}}</h5>
-        <h5>Profit: <span class="text-success">{{projectDetails ? formatCurrency(projectDetails.project_revenue - projectDetails.project_manufacturing_price) : ''}}</span></h5>
+        <h5 class="my-3">Revenue: <span class="text-success">{{projectDetails ? formatCurrency(projectDetails.project_revenue) : ''}}</span></h5>
+        <!-- <h5>Funding cost: {{projectDetails ? formatCurrency(projectDetails.project_manufacturing_price) : ''}}</h5>
+        <h5>Profit: <span class="text-success">{{projectDetails ? formatCurrency(projectDetails.project_revenue - projectDetails.project_manufacturing_price) : ''}}</span></h5> -->
       </div>
       <div>
         <b-button v-bind:to="`/transactions/new?projectid=${projectDetails.id}`">
@@ -71,7 +71,11 @@ export default {
     async fetchInitialProject() {
       try {
         // Fetch currently available projects
-        const projectsResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects`)
+        const projectsResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         if(projectsResponse.status !== 200) {
           throw "Fetching projects failed"
@@ -93,6 +97,17 @@ export default {
         if(selectedProject !== null) {
           this.fetchProject(selectedProject.id)
         }
+
+        // Check route
+        const projectId = this.$route.query.projectid
+        const parsedProjectId = parseInt(projectId)
+
+        if(!isNaN(parsedProjectId)) {
+          const foundProject = projects.find(project => project.id === parsedProjectId)
+
+          if(foundProject !== null)
+            this.selectedProject = foundProject
+        } 
       }
       catch(e) {
         console.log(e)
@@ -100,11 +115,16 @@ export default {
     },
     setProject(project) {
       this.selectedProject = project
+      this.$router.push(`/transactions?projectid=${project.id}`)
       this.fetchProject(project.id)
     },
     async fetchProject(id) {
       try {
-        const projectDetailResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects/${id}`)
+        const projectDetailResponse = await fetch(`${process.env.VUE_APP_BASE_URL}/projects/${id}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
         
         if(projectDetailResponse.status !== 200) {
           throw "Fetching project details failed"

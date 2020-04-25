@@ -59,7 +59,11 @@ export default {
   methods: {
     async fetchData(id) {
       try {
-        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items/${id}`)
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items/${id}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         if(response.status !== 200) {
           throw 'Fetching item failed.'
@@ -77,7 +81,8 @@ export default {
         const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items`, {
           method: 'POST',
           headers: {
-            'Content-Type' : 'application/json'
+            'Content-Type' : 'application/json',
+            'Authorization' : localStorage.getItem('apiKey')
           },
           body: JSON.stringify({
             ...this.item,

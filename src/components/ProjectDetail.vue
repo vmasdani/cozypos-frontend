@@ -46,7 +46,11 @@ export default {
   methods: {
     async fetchProject(id) {
       try {
-        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/projects/${id}`)
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/projects/${id}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         if(response.status !== 200) {
           throw 'Error fetching project'

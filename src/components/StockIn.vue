@@ -14,6 +14,27 @@
         <b-button v-on:click="stockIn()">Insert</b-button>
       </div>
     </div>
+    <div>
+      <h5>Stock in history</h5>
+    
+      <b-list-group>
+        <b-list-group-item
+          v-for="stockIn in item.item_stock_ins"
+          :key="stockIn.id"
+          class="border-primary"
+        >
+          <div>
+            Qty: {{stockIn.qty}}
+          </div>
+          <div>
+            Date: {{stockIn.created_at}}
+          </div>
+          <div>
+            Created by: {{stockIn.pic}}
+          </div>
+        </b-list-group-item>
+      </b-list-group>
+    </div>
   </div>
 </template>
 <script>
@@ -21,7 +42,10 @@ export default {
   name: 'StockIn',
   data() {
     return {
-      item: null,
+      item: {
+        name: '',
+        item_stock_ins: []
+      },
       stockInAmount: ''
     }
   },
@@ -32,7 +56,11 @@ export default {
     async fetchItemData() {
       try {
         const id = this.$route.params.id
-        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items/${id}`)
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items/${id}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         if(response.status !== 200) {
           throw 'Error fetching item data'
@@ -47,13 +75,20 @@ export default {
     },
     async stockIn() {
       try {
+        const usernameBase64 = localStorage.getItem('apiKey').split(':')[0]
+
+        console.log('split api key:', usernameBase64)
+        const username = atob(usernameBase64)
+
         const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items/stock-in`, {
           method: 'POST',
           headers: {
-            'Content-Type' : 'application/json'
+            'Content-Type' : 'application/json',
+            'Authorization' : localStorage.getItem('apiKey')
           },
           body: JSON.stringify({
             item_id: this.item ? this.item.id : 0,
+            pic: username,
             qty: parseInt(this.stockInAmount)
           })
         })

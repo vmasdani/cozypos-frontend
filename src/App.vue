@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" class="">
     <div v-if="loggedIn">
       <b-navbar class="fixed-top" toggleable="lg" type="dark" variant="dark">
         <b-navbar-brand>Cozy PoS</b-navbar-brand>
@@ -8,10 +8,13 @@
 
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav>
-            <b-nav-item to="/statistics">Statistics</b-nav-item>
+            <b-nav-item to="/summary">Summary</b-nav-item>
             <b-nav-item to="/transactions">Transaction</b-nav-item>
             <b-nav-item to="/inventory">Inventory</b-nav-item>
-            <b-nav-item to="/projects">Projects</b-nav-item>  
+            <b-nav-item to="/projects">Projects</b-nav-item>
+            <b-nav-item>
+              <b-button v-on:click="logout" variant="danger"><b-icon-chevron-left/> Logout</b-button>
+            </b-nav-item>
           </b-navbar-nav>
         </b-collapse>
       </b-navbar>
@@ -20,7 +23,7 @@
       </b-container>
     </div>
     <div v-else>
-      <Login />
+      <Login v-bind:loggingIn="loggingIn" @onClickLogin="login" />
     </div>
   </div>
 </template>
@@ -35,8 +38,10 @@ import InventoryDetail from './components/InventoryDetail'
 import StockIn from './components/StockIn'
 import VueRouter from 'vue-router'
 import Login from './components/Login'
+import Summary from './components/Summary'
 
 const routes = [
+  { path: '/summary', component: Summary },
   { path: '/transactions', component: Transaction },
   { path: '/transactions/:id', component: TransactionDetail },
   { path: '/inventory', component: Inventory },
@@ -55,11 +60,81 @@ export default {
   router,
   data() {
     return {
-      loggedIn: true
+      loggingIn: false,
+      loggedIn: false
+    }
+  },
+  async created() { // Check local storage
+    const apiKey = localStorage.getItem('apiKey')
+    console.log('apikey:', apiKey)
+
+    if(apiKey !== null) {
+      try {
+        this.loggingIn = true
+
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/check-api-key`, {
+          method: 'POST',
+          headers: {
+            'Content-Type' : 'application/json',
+          },
+          body: JSON.stringify({api_key: apiKey})
+        })
+
+        if(response.status !== 200) {
+          this.loggingIn = false
+          throw 'Unauthorized. Invalid API key'
+        }
+
+        this.loggedIn = true
+        this.loggingIn = false
+        const data = response.text()
+        console.log('data:', data)
+      }
+      catch(e) {
+        console.log(e)
+      }
     }
   },
   components: {
     Login
+  },
+  methods: {
+    async login(value) {
+      // value: { username, password }
+      try {
+        this.loggingIn = true
+
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type' : 'application/json'
+          },
+          body: JSON.stringify(value)
+        })
+
+        if(response.status !== 200) {
+          this.loggingIn = false
+          throw 'Error logging in. password incorrect.'
+        }
+
+        const key = await response.text()
+        localStorage.setItem('apiKey', key)
+
+        this.loggedIn = true
+        this.loggingIn = false
+
+        console.log('apikey:', key)
+
+        // alert(`loggin in!, ${JSON.stringify(value)}`)
+      }
+      catch(e) {
+        console.log(e)
+      }
+    },
+    logout() {
+      localStorage.setItem('apiKey', null)
+      this.loggedIn = false
+    }
   }
 }
 </script>

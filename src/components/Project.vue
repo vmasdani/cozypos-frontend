@@ -14,16 +14,16 @@
         >
           <div class="d-flex flex-column justify-content-between" v-bind="[formatCurrency]">
             <h5>{{project.name}}</h5>
-            <div>
+            <!-- <div>
               Funding: {{formatCurrency(0)}}
-            </div>
+            </div> -->
             <div>
               Revenue: {{formatCurrency(0)}}
             </div>
-            <div>
+            <!-- <div>
               Profit: {{formatCurrency(0)}}
-            </div>
-            <div class=" d-flex bg-white">
+            </div> -->
+            <div class=" d-flex">
               <div class="bg-info p-2 text-white">
                 <strong>Date: {{new Date(project.date).toISOString().slice(0, 10)}}</strong>
               </div>
@@ -52,7 +52,11 @@ export default {
   methods: {
     async fetchProjects() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/projects`)
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/projects`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
         
         if(response.status != 200) {
           throw 'Fething project error'

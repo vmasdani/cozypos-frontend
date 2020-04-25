@@ -36,7 +36,7 @@
               <div v-bind:class="`${compareSold(item.sold, item.qty)} p-1 text-white`">
                 <strong>Sold {{item.sold}}/{{item.qty}}</strong>
               </div>
-              <div class="ml-2 bg-secondary p-1 text-white"><strong>Rsv. {{item.reserved}}</strong></div>
+              <!-- <div class="ml-2 bg-secondary p-1 text-white"><strong>Rsv. {{item.reserved}}</strong></div> -->
             </div>
             <b-button v-bind:to="`/stock-in/${item.id}`">Stock in</b-button>
           </div>
@@ -64,7 +64,11 @@ export default {
   methods: {
     async fetchInventory() {
       try {
-        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items`)
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items`, { 
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         if(response.status !== 200) {
           throw 'Fetching inventory error.'
