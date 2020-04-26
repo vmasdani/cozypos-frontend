@@ -23,7 +23,11 @@
       </b-container>
     </div>
     <div v-else>
-      <Login v-bind:loggingIn="loggingIn" @onClickLogin="login" />
+      <Login 
+        v-bind:loggingIn="loggingIn"
+        v-bind:loginFailed="loginFailed" 
+        @onClickLogin="login" 
+      />
     </div>
   </div>
 </template>
@@ -61,6 +65,7 @@ export default {
   data() {
     return {
       loggingIn: false,
+      loginFailed: false,
       loggedIn: false
     }
   },
@@ -114,6 +119,7 @@ export default {
 
         if(response.status !== 200) {
           this.loggingIn = false
+          this.loginFailed = true
           throw 'Error logging in. password incorrect.'
         }
 

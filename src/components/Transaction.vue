@@ -25,7 +25,7 @@
         <b-button v-bind:to="`/transactions/new?projectid=${projectDetails.id}`">
           <b-icon-plus-circle-fill/> Add
         </b-button>
-        <b-button class="btn-info mx-2"><b-icon-download/> Download Report</b-button>
+        <b-button class="btn-info mx-2" v-on:click="downloadReport()"><b-icon-download/> Download Report</b-button>
       </div>
       
       <div class="my-2">
@@ -168,6 +168,35 @@ export default {
         default:
           return 'white'
       }
+    },
+    async downloadReport() {
+      try {
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/report?projectid=${this.projectDetails.id}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }  
+        })
+
+        if(response.status !== 200) {
+          throw 'Failed downloading report.'
+        }
+
+        const reportContents = await response.text()
+
+        const blob = new Blob([reportContents], { type: 'text/csv;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `report_${new Date().toISOString()}.csv`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      }
+      catch(e) {
+        console.log(e)
+      }
+
+      
     }
   }
 }

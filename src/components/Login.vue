@@ -5,6 +5,7 @@
         <h3>Cozy PoS Login</h3>
 
         <b-spinner v-if="loggingIn" variant="primary"></b-spinner>
+        <div v-if="loginFailed" class="text-danger">Login failed. incorrect password?</div>
 
         <div class="my-2">
           <b-form-input placeholder="Username..." v-model="username"></b-form-input>
@@ -13,7 +14,7 @@
         <div class="my-2">
           <b-form-input placeholder="Password..." v-model="password" type="password"></b-form-input>
         </div>
-      
+       
         <div class="my-2">
           <b-button variant="primary" v-on:click="handleLogin()">Login</b-button>
         </div>
@@ -27,7 +28,8 @@
 export default {
   name: 'Login',
   props: {
-    loggingIn: Boolean
+    loggingIn: Boolean,
+    loginFailed: Boolean
   },
   data() {
     return {
