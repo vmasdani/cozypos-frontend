@@ -206,7 +206,11 @@ export default {
       console.log(`${process.env.VUE_APP_BASE_URL}/items-search?name=${search}`)
 
       try {
-        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-search?name=${search}`)
+        const response = await fetch(`${process.env.VUE_APP_BASE_URL}/items-search?name=${search}`, {
+          headers: {
+            'Authorization' : localStorage.getItem('apiKey')
+          }
+        })
 
         if(response.status !== 200) {
           throw 'Error fetching items.'
